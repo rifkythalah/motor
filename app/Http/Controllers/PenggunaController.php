@@ -8,12 +8,33 @@ use Illuminate\Support\Facades\Http;
 class PenggunaController extends Controller
 {
     // Halaman utama: daftar kendaraan
-    public function index()
-    {
+    public function index(Request $request)
+{
     $response = Http::get('http://127.0.0.1:8000/api/kendaraan');
-    $kendaraans = $response->successful() ? $response->json() : [];
-    return view('Pengguna.index', compact('kendaraans'));
+    $kendaraans = $response->successful() ? collect($response->json()) : collect([]);
+
+    // Filter hanya yang tersedia
+    $kendaraans = $kendaraans->where('status', 'Tersedia');
+
+    // Search
+    if ($request->filled('q')) {
+        $q = strtolower($request->q);
+        $kendaraans = $kendaraans->filter(function($item) use ($q) {
+            return str_contains(strtolower($item['merk_kendaraan']), $q);
+        });
     }
+
+    // Sort
+    if ($request->sort == 'termurah') {
+        $kendaraans = $kendaraans->sortBy('harga');
+    } elseif ($request->sort == 'termahal') {
+        $kendaraans = $kendaraans->sortByDesc('harga');
+    }
+
+    $kendaraans = $kendaraans->values()->all(); // reset index
+
+    return view('Pengguna.index', compact('kendaraans'));
+}
 
     // Detail kendaraan
     public function show($id)
@@ -80,6 +101,7 @@ class PenggunaController extends Controller
         $data['user_id'] = session('user.data.id') ?? null;
         $data['merk_kendaraan'] = $kendaraan['merk_kendaraan'] ?? '';
         $data['harga'] = $kendaraan['harga'] ?? 0;
+        $data['image'] = $kendaraan['image'] ?? ''; 
         $response = Http::post('http://127.0.0.1:8000/api/riwayat', $data);
         if ($response->successful()) {
             return redirect()->route('pengguna.riwayat')->with('success', 'Pemesanan berhasil!');
