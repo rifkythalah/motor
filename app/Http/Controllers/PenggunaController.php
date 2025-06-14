@@ -72,19 +72,22 @@ class PenggunaController extends Controller
             'nama_user' => 'required|string',
             'tanggal_sewa' => 'required|date',
             'tanggal_kembali' => 'required|date|after_or_equal:tanggal_sewa',
+            'total_harga' => 'required|numeric|min:1',
         ]);
+        $kendaraan = Http::get("http://127.0.0.1:8000/api/kendaraan/$id")->json();
         $data = $request->all();
         $data['kendaraan_id'] = $id;
         $data['user_id'] = session('user.data.id') ?? null;
-        $data['merk_kendaraan'] = $request->input('merk_kendaraan', '');
-        $data['harga'] = $request->input('harga', 0);
-        $data['total_harga'] = 0; // Hitung di backend jika perlu   
+        $data['merk_kendaraan'] = $kendaraan['merk_kendaraan'] ?? '';
+        $data['harga'] = $kendaraan['harga'] ?? 0;
         $response = Http::post('http://127.0.0.1:8000/api/riwayat', $data);
         if ($response->successful()) {
-            return redirect()->route('pengguna.index')->with('success', 'Pemesanan berhasil!');
+            return redirect()->route('pengguna.riwayat')->with('success', 'Pemesanan berhasil!');
         }
         return back()->withErrors(['msg' => 'Gagal memesan kendaraan']);
     }
+
+
     public function riwayat()
 {
     if (!session('user')) {

@@ -11,6 +11,7 @@
                     <div class="card">
                         <div class="card-body">
                             <h5 class="card-title">{{ $riwayat['merk_kendaraan'] }}</h5>
+                             <img src="http://127.0.0.1:8000/storage/{{ $kendaraan['image'] }}" class="card-img-top" alt="{{ $kendaraan['merk_kendaraan'] }}">
                             <p class="card-text">Tanggal Sewa: {{ $riwayat['tanggal_sewa'] }}</p>
                             <p class="card-text">Tanggal Kembali: {{ $riwayat['tanggal_kembali'] }}</p>
                             <p class="card-text">Total Harga: Rp {{ number_format($riwayat['total_harga'], 0, ',', '.') }}</p>
